@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Illidan_sic的活动算法</title>
+    <style>
+        .con {
+            display: flex;
+            justify-content: flex-start;
+            align-items: flex-start;
+        }
+        
+        li {
+            list-style-type: none;
+        }
+    </style>
+    <script>
+        const direction = ['up', 'left', 'down', 'right']; //移动方向
+        var point_map, dots, out_dots, all_out_dots, start_dot, end_dot, total, vcount; //b变量
+        function myroad() {
+            //初始化成功就开始递归，将起点压入数组，并将起点设为已访问
+            if (initponts()) {
+                dots[start_dot.y][start_dot.x].visited = true;
+                out_dots.push(start_dot);
+                for (var i = 0; i < direction.length; i++) {
+                    move(start_dot.x, start_dot.y, direction[i])
+                }
+            }
+
+            function drawLines() {
+                //生成画布
+                var str = '';
+                var WIDTH = document.body.offsetWidth * 0.8;
+                var result = document.getElementById("canvas");
+                for (var i = 0; i < all_out_dots.length; i++) {
+                    str += `<div><canvas id='canvas_${i}' width="${WIDTH}" height="${WIDTH/2}"></canvas></div>`
+                }
+                result.innerHTML = str;
+
+                //绘点
+                var LINE_LENGTH = WIDTH / 8; //线宽
+                var DOT_R = WIDTH / 80; //点半径
+                var OFFSET = WIDTH / 64; //坐标偏移量
+                for (let i = 0; i < all_out_dots.length; i++) {
+                    let canvas = document.getElementById(`canvas_${i}`),
+                        context = canvas.getContext('2d');
+                    context.lineWidth = WIDTH / 200; //线宽
+
+                    let cross = {};
+                    let start = false;
+                    //判断是否是跳跃
+                    function isCrossLine(i, j) {
+                        let x_start, x_end, y_start, y_end;
+                        if (all_out_dots[i][j].x > all_out_dots[i][j - 1].x) {
+                            x_start = all_out_dots[i][j - 1].x
+                            x_end = all_out_dots[i][j].x
+                        } else {
+                            x_start = all_out_dots[i][j].x
+                            x_end = all_out_dots[i][j - 1].x
+                        }
+                        if (all_out_dots[i][j].y > all_out_dots[i][j - 1].y) {
+                            y_start = all_out_dots[i][j - 1].y
+                            y_end = all_out_dots[i][j].y
+                        } else {
+                            y_start = all_out_dots[i][j].y
+                            y_end = all_out_dots[i][j - 1].y
+                        }
+                        if (x_start == x_end) {
+                            for (let y = y_start + 1; y < y_end; y++) {
+                                if (cross[`${x_start}_${y}`]) {
+                                    return true
+                                }
+                            }
+                        } else if (y_start == y_end) {
+                            for (let x = x_start + 1; x < x_end; x++) {
+                                if (cross[`${x}_${y_start}`]) {
+                                    return true
+                                }
+                            }
+                        }
+                        return false
+                    }
+                    for (let j = 0; j < all_out_dots[i].length; j++) {
+                        setTimeout(() => {
+                            cross[`${all_out_dots[i][j].x}_${all_out_dots[i][j].y}`] = 'visited';
+                            context.beginPath();
+                            context.arc(LINE_LENGTH * all_out_dots[i][j].x + OFFSET, LINE_LENGTH * all_out_dots[i][j].y + OFFSET, DOT_R, 0, 2 * Math.PI);
+                            context.fill();
+                            if (!start) {
+                                start = true;
+                            } else {
+                                if (isCrossLine(i, j)) {
+                                    context.strokeStyle = "#f90";
+                                } else {
+                                    context.strokeStyle = "#000";
+                                }
+                                context.moveTo(LINE_LENGTH * all_out_dots[i][j - 1].x + OFFSET, LINE_LENGTH * all_out_dots[i][j - 1].y + OFFSET);
+                                context.lineTo(LINE_LENGTH * all_out_dots[i][j].x + OFFSET, LINE_LENGTH * all_out_dots[i][j].y + OFFSET);
+                            }
+                            context.stroke();
+                        }, 500 * j + (i * all_out_dots[i].length * 500))
+                    }
+                    start = false;
+                }
+            }
+            drawLines();
+        }
+
+        //遍历点图，创建点对象数组
+        function initponts() {
+            //初始化
+            point_map = []; //点图
+            dots = []; //存放点
+            out_dots = []; //输出点-一条
+            all_out_dots = [] //输出点-所有
+            start_dot = new Object(); //开始点
+            end_dot = new Object(); //结束点
+            total = 0; //所有点数
+            vcount = 1; //遍历点数
+
+
+            //将输入变换成点图
+            var first = document.getElementById('first');
+            var second = document.getElementById('second');
+            var third = document.getElementById('third');
+            var fourth = document.getElementById('fourth');
+            if (first.value.length != 13 || second.value.length != 13 || third.value.length != 13 || fourth.value.length != 13) {
+                alert('输入长度有误，请检查')
+                return
+            }
+            if (first.value.split(',').length != 7 || second.value.split(',').length != 7 || second.value.split(',').length != 7 || second.value.split(',').length != 7) {
+                alert('分隔符有误，请检查')
+                return
+            }
+            point_map.push(first.value.split(',').map(function(value) {
+                return parseInt(value);
+            }))
+            point_map.push(second.value.split(',').map(function(value) {
+                return parseInt(value);
+            }))
+            point_map.push(third.value.split(',').map(function(value) {
+                return parseInt(value);
+            }))
+            point_map.push(fourth.value.split(',').map(function(value) {
+                return parseInt(value);
+            }))
+
+            //生成点对象数组
+            for (var i = 0; i < 4; i++) {
+                var dots_x = [];
+                for (var j = 0; j < 7; j++) {
+                    var dot = {
+                        x: j,
+                        y: i,
+                        typ: point_map[i][j],
+                        visited: false
+                    }
+                    dots_x.push(dot);
+                    if (point_map[i][j] > 0) {
+                        total++;
+                    }
+                    if (point_map[i][j] == 2) {
+                        start_dot = dot;
+                    }
+                    if (point_map[i][j] == 3) {
+                        end_dot = dot;
+                    }
+                }
+                dots.push(dots_x);
+            }
+            if (JSON.stringify(start_dot) == "{}") {
+                alert('未输入起点')
+                return false;
+            }
+            if (JSON.stringify(end_dot) == "{}") {
+                alert('未输入终点')
+                return false;
+            }
+            return true;
+        }
+
+        //移动
+        function move(x, y, nwse) {
+            //移动方向改变坐标
+            switch (nwse) {
+                case 'up':
+                    y = y - 1;
+                    break;
+                case 'left':
+                    x = x - 1;
+                    break;
+                case 'right':
+                    x = x + 1;
+                    break;
+                case 'down':
+                    y = y + 1;
+                    break;
+                default:
+                    return;
+            }
+            //越界返回
+            if (x < 0 || x > 6 || y < 0 || y > 3) {
+                return;
+            }
+            //跳过不存在的点和已访问过的点
+            if (dots[y][x].typ == 0 || dots[y][x].visited) {
+                move(x, y, nwse);
+            }
+
+            //到达终点，判定
+            if (dots[y][x].typ == 3) {
+                //未遍历完所有点，返回
+                if (vcount < total - 1) {
+                    return;
+                }
+                //遍历完，将终点压入数组，拷贝数组并压入到所有解法中
+                if (vcount == total - 1) {
+                    var temparr = [];
+                    out_dots.push(end_dot);
+                    for (var i = 0; i < out_dots.length; i++) {
+                        var p = {
+                            x: out_dots[i].x,
+                            y: out_dots[i].y
+                        }
+                        temparr.push(p);
+                    }
+                    //弹出终点，回朔
+                    out_dots.pop();
+                    all_out_dots.push(temparr);
+                }
+            }
+            //到达未被遍历过的点
+            if (dots[y][x].visited == false && dots[y][x].typ > 0) {
+                //设为已遍历，点数+1，点压入数组
+                dots[y][x].visited = true;
+                vcount++;
+                out_dots.push(dots[y][x]);
+                for (var i = 0; i < direction.length; i++) {
+                    //遍历四个方向，不能去来时的方向，
+                    if (direction[(i + 2) % 4] == nwse) {
+                        continue;
+                    }
+                    //递归
+                    move(dots[y][x].x, dots[y][x].y, direction[i])
+                }
+                //恢复，回朔
+                out_dots.pop();
+                dots[y][x].visited = false;
+                vcount--;
+            }
+
+        }
+    </script>
+</head>
+
+<body>
+    <li>请输入每一行的数据</li>
+    <li>0代表没有，1代表普通点，2代表起点，3代表终点</li>
+    <li>英文逗号','隔开</li>
+    <li>例:0,1,0,1,0,1,0</li>
+    <li>第一行</li>
+    <input type='string' id="first" />
+    <li>第二行</li>
+    <input type='string' id="second" />
+    <li>第三行</li>
+    <input type='string' id="third" />
+    <li>第四行</li>
+    <input type='string' id="fourth" />
+    <input type='button' onclick="myroad()" value="计算" />
+    <div id='canvas' style="margin-top:20px"></div>
+</body>
+
+</html>
