@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <title>空门苍的活动算法</title>
+    <title>Illidan_sic的活动算法</title>
     <style>
         .con {
             display: flex;
@@ -47,6 +47,7 @@
                         context = canvas.getContext('2d');
                     context.lineWidth = WIDTH / 200; //线宽
 
+
                     let cross = {};
                     let start = false;
                     //判断是否是跳跃
@@ -81,24 +82,41 @@
                         }
                         return false
                     }
+
+                    function drawDot(i, j) {
+                        context.beginPath();
+                        context.arc(LINE_LENGTH * all_out_dots[i][j].x + OFFSET, LINE_LENGTH * all_out_dots[i][j].y + OFFSET, DOT_R, 0, 2 * Math.PI);
+                        context.fill();
+                        context.stroke();
+                    }
                     for (let j = 0; j < all_out_dots[i].length; j++) {
                         setTimeout(() => {
                             cross[`${all_out_dots[i][j].x}_${all_out_dots[i][j].y}`] = 'visited';
-                            context.beginPath();
-                            context.arc(LINE_LENGTH * all_out_dots[i][j].x + OFFSET, LINE_LENGTH * all_out_dots[i][j].y + OFFSET, DOT_R, 0, 2 * Math.PI);
-                            context.fill();
                             if (!start) {
+                                context.fillStyle = "#0f0";
+                                context.strokeStyle = "#0f0";
+                                drawDot(i, j);
                                 start = true;
                             } else {
+                                if (j == all_out_dots[i].length - 1) {
+                                    context.fillStyle = "#f00";
+                                    context.strokeStyle = "#f00";
+                                } else {
+                                    context.fillStyle = "#000";
+                                    context.strokeStyle = "#000";
+                                }
+                                drawDot(i, j);
                                 if (isCrossLine(i, j)) {
                                     context.strokeStyle = "#f90";
                                 } else {
                                     context.strokeStyle = "#000";
                                 }
+                                context.beginPath();
+                                context.lineJoin = 'round';
                                 context.moveTo(LINE_LENGTH * all_out_dots[i][j - 1].x + OFFSET, LINE_LENGTH * all_out_dots[i][j - 1].y + OFFSET);
                                 context.lineTo(LINE_LENGTH * all_out_dots[i][j].x + OFFSET, LINE_LENGTH * all_out_dots[i][j].y + OFFSET);
+                                context.stroke();
                             }
-                            context.stroke();
                         }, 500 * j + (i * all_out_dots[i].length * 500))
                     }
                     start = false;
@@ -129,7 +147,7 @@
                 alert('输入长度有误，请检查')
                 return
             }
-            if (first.value.split(',').length != 7 || second.value.split(',').length != 7 || second.value.split(',').length != 7 || second.value.split(',').length != 7) {
+            if (first.value.split(',').length != 7 || second.value.split(',').length != 7 || third.value.split(',').length != 7 || fourth.value.split(',').length != 7) {
                 alert('分隔符有误，请检查')
                 return
             }
